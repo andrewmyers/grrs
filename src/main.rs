@@ -20,10 +20,14 @@ fn main() {
     let f = File::open(args.path).expect("Could not read file");
     let f = BufReader::new(f);
 
+    let mut line_num = 1;
+
     for line in f.lines() {
         let contents = line.unwrap();
         if contents.contains(&args.pattern) {
-            println!("{}", contents);
+            println!("{}: {}", line_num, contents);
         }
+
+        line_num += 1;
     }
 }
