@@ -1,3 +1,5 @@
+use anyhow::Ok;
+use anyhow::{Context, Result};
 use clap::Parser;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
@@ -14,15 +16,21 @@ struct Cli {
     path: PathBuf,
 }
 
-fn main() {
+fn main() -> Result<()> {
     let args = Cli::parse();
 
-    let f = File::open(args.path).expect("Could not read file");
-    let f = BufReader::new(f);
+    let file = File::open(&args.path).with_context(|| {
+        format!(
+            "Could not read file {}",
+            args.path.to_owned().as_path().display()
+        )
+    })?;
+
+    let file_buffer = BufReader::new(file);
 
     let mut line_num = 1;
 
-    for line in f.lines() {
+    for line in file_buffer.lines() {
         let contents = line.unwrap();
         if contents.contains(&args.pattern) {
             println!("{}: {}", line_num, contents);
@@ -30,4 +38,6 @@ fn main() {
 
         line_num += 1;
     }
+
+    Ok(())
 }
