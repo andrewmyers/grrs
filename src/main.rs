@@ -4,6 +4,7 @@ use clap::Parser;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
+use std::io::{self, Write};
 
 // Search for a pattern in a file and display the lines that contain it
 #[derive(Parser)]
@@ -30,10 +31,13 @@ fn main() -> Result<()> {
 
     let mut line_num = 1;
 
+    let stdout = io::stdout();
+    let mut handle = io::BufWriter::new(stdout.lock());
+
     for line in file_buffer.lines() {
         let contents = line.unwrap();
         if contents.contains(&args.pattern) {
-            println!("{}: {}", line_num, contents);
+            writeln!(handle, "{}: {}", line_num, contents)?;
         }
 
         line_num += 1;
