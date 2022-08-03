@@ -2,9 +2,9 @@ use anyhow::Ok;
 use anyhow::{Context, Result};
 use clap::Parser;
 use std::fs::File;
+use std::io::{self};
 use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
-use std::io::{self, Write};
 
 // Search for a pattern in a file and display the lines that contain it
 #[derive(Parser)]
@@ -29,15 +29,21 @@ fn main() -> Result<()> {
 
     let file_buffer = BufReader::new(file);
 
-    let mut line_num = 1;
-
     let stdout = io::stdout();
-    let mut handle = io::BufWriter::new(stdout.lock());
+    let handle = io::BufWriter::new(stdout.lock());
+
+    find_matches(file_buffer, &args.pattern, handle).unwrap();
+
+    Ok(())
+}
+
+fn find_matches(file_buffer: BufReader<File>, pattern: &str, mut writer: impl std::io::Write) -> Result<()>{
+    let mut line_num = 1;
 
     for line in file_buffer.lines() {
         let contents = line.unwrap();
-        if contents.contains(&args.pattern) {
-            writeln!(handle, "{}: {}", line_num, contents)?;
+        if contents.contains(pattern) {
+            writeln!(writer, "{}: {}", line_num, contents)?;
         }
 
         line_num += 1;
